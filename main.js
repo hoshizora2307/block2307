@@ -2,6 +2,14 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const statusMessage = document.getElementById("status-message");
 const highScoreElement = document.getElementById("high-score");
+const playerLevelElement = document.getElementById("player-level");
+const playerXPElement = document.getElementById("player-xp");
+const xpToNextLevelElement = document.getElementById("xp-to-next-level");
+const statusPointsElement = document.getElementById("status-points");
+const statsPanel = document.getElementById("stats-panel");
+const upgradePaddleButton = document.getElementById("upgrade-paddle");
+const upgradeSpeedButton = document.getElementById("upgrade-speed");
+const upgradeLifeButton = document.getElementById("upgrade-life");
 
 // ゲームの状態
 let gameStarted = false;
@@ -9,6 +17,80 @@ let score = 0;
 let lives = 3;
 let highScore = localStorage.getItem('breakoutHighScore') || 0;
 highScoreElement.textContent = highScore;
+
+// RPG要素
+let player = {
+    level: 1,
+    xp: 0,
+    xpToNextLevel: 10,
+    statusPoints: 0,
+    paddleStat: 1,
+    speedStat: 1,
+    lifeStat: 1
+};
+
+// ゲーム開始時のステータスを更新
+function updateStatsUI() {
+    playerLevelElement.textContent = player.level;
+    playerXPElement.textContent = player.xp;
+    xpToNextLevelElement.textContent = player.xpToNextLevel;
+    statusPointsElement.textContent = player.statusPoints;
+    document.getElementById("stat-paddle-size").textContent = player.paddleStat;
+    document.getElementById("stat-ball-speed").textContent = player.speedStat;
+    document.getElementById("stat-life").textContent = player.lifeStat;
+
+    upgradePaddleButton.disabled = player.statusPoints === 0;
+    upgradeSpeedButton.disabled = player.statusPoints === 0;
+    upgradeLifeButton.disabled = player.statusPoints === 0;
+}
+
+// レベルアップの処理
+function gainXP() {
+    player.xp++;
+    if (player.xp >= player.xpToNextLevel) {
+        player.level++;
+        player.xp = 0;
+        player.xpToNextLevel = player.xpToNextLevel * 2;
+        player.statusPoints++;
+        alert(`レベルアップ！ レベル: ${player.level}になりました！\nステータスポイントを1獲得しました。`);
+        statsPanel.style.display = 'block';
+    }
+    updateStatsUI();
+}
+
+// ステータス強化ボタンのイベントリスナー
+upgradePaddleButton.addEventListener("click", () => {
+    if (player.statusPoints > 0) {
+        player.statusPoints--;
+        player.paddleStat++;
+        paddle.width += 10;
+        updateStatsUI();
+    }
+});
+
+upgradeSpeedButton.addEventListener("click", () => {
+    if (player.statusPoints > 0) {
+        player.statusPoints--;
+        player.speedStat++;
+        balls.forEach(ball => {
+            ball.dx += (ball.dx > 0 ? 0.2 : -0.2);
+            ball.dy += (ball.dy > 0 ? 0.2 : -0.2);
+        });
+        updateStatsUI();
+    }
+});
+
+upgradeLifeButton.addEventListener("click", () => {
+    if (player.statusPoints > 0) {
+        player.statusPoints--;
+        player.lifeStat++;
+        lives++;
+        updateStatsUI();
+    }
+});
+
+// 初期UIの描画
+updateStatsUI();
 
 // ボールの設定（複数ボールに対応）
 let balls = [{
@@ -163,7 +245,6 @@ backgroundImage.onload = () => {
 };
 backgroundImage.onerror = () => {
     console.error("背景画像のロードに失敗しました。ファイル名 'space_bg.jpg' が正しいか確認してください。");
-    // ロード失敗してもゲームは開始できるようにする
     assetsLoaded++;
     checkAllAssetsLoaded();
 };
@@ -193,7 +274,6 @@ function drawBackground() {
     if (backgroundImage.complete) {
         ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
     } else {
-        // 画像がロードされていない場合は単色で塗りつぶす
         ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
@@ -237,7 +317,7 @@ function drawBricks() {
 
 // 描画ループ
 function draw() {
-    drawBackground(); // 背景画像を描画
+    drawBackground();
     drawBricks();
     drawBall();
     drawPaddle();
@@ -297,6 +377,9 @@ function draw() {
                             ball.dy = -ball.dy;
                             b.status = 0;
                             score++;
+                            // 経験値を獲得
+                            gainXP();
+
                             if (b.isPowerupBlock) {
                                 spawnPowerup(b.x + brick.width / 2, b.y + brick.height);
                             }
@@ -364,5 +447,33 @@ function gameStartHandler() {
 }
 
 // 画像のロードが完了してからゲーム開始のメッセージを表示
-// 今回は`checkAllAssetsLoaded()`で管理するので削除
-checkAllAssetsLoaded();
+let assetsLoaded = 0;
+const totalAssets = 2;
+
+const backgroundImage = new Image();
+backgroundImage.src = 'space_bg.jpg';
+backgroundImage.onload = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+backgroundImage.onerror = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+
+const brickImage = new Image();
+brickImage.src = 'logo.png';
+brickImage.onload = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+brickImage.onerror = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+
+function checkAllAssetsLoaded() {
+    if (assetsLoaded === totalAssets) {
+        draw();
+    }
+}
