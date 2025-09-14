@@ -7,14 +7,14 @@ let gameStarted = false;
 let score = 0;
 let lives = 3;
 
-// ボールの設定
-let ball = {
+// ボールは複数になる可能性があるため配列で管理
+let balls = [{
     x: canvas.width / 2,
     y: canvas.height - 30,
     dx: 2,
     dy: -2,
     radius: 10
-};
+}];
 
 // パドルの設定
 const paddle = {
@@ -38,7 +38,9 @@ const bricks = [];
 for (let c = 0; c < brick.columnCount; c++) {
     bricks[c] = [];
     for (let r = 0; r < brick.rowCount; r++) {
-        bricks[c][r] = { x: 0, y: 0, status: 1 };
+        // ランダムでアイテムブロックを生成
+        const isPowerupBlock = Math.random() < 0.3;
+        bricks[c][r] = { x: 0, y: 0, status: 1, isPowerupBlock: isPowerupBlock };
     }
 }
 
@@ -50,13 +52,16 @@ brickImage.onerror = () => {
     alert("ロゴ画像のロードに失敗しました。コンソールを確認してください。");
 };
 
+
 // 描画関数
 function drawBall() {
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-    ctx.fillStyle = "#0095DD";
-    ctx.fill();
-    ctx.closePath();
+    balls.forEach(ball => {
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();
+    });
 }
 
 function drawPaddle() {
@@ -70,14 +75,16 @@ function drawPaddle() {
 function drawBricks() {
     for (let c = 0; c < brick.columnCount; c++) {
         for (let r = 0; r < brick.rowCount; r++) {
-            if (bricks[c][r].status === 1) {
+            const b = bricks[c][r];
+            if (b.status === 1) {
                 const brickX = (c * (brick.width + brick.padding)) + brick.offsetLeft;
                 const brickY = (r * (brick.height + brick.padding)) + brick.offsetTop;
-                bricks[c][r].x = brickX;
-                bricks[c][r].y = brickY;
+                b.x = brickX;
+                b.y = brickY;
                 
-                // 画像がロード済みであれば、画像を描画
-                ctx.drawImage(brickImage, brickX, brickY, brick.width, brick.height);
+                if (brickImage.complete) {
+                    ctx.drawImage(brickImage, brickX, brickY, brick.width, brick.height);
+                }
             }
         }
     }
@@ -89,49 +96,62 @@ function draw() {
     drawBricks();
     drawBall();
     drawPaddle();
+    updateAndDrawPowerups(ctx); // アイテムの描画と更新
 
     if (gameStarted) {
-        ball.x += ball.dx;
-        ball.y += ball.dy;
-        
-        // 壁との衝突判定
-        if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
-            ball.dx = -ball.dx;
-        }
-        if (ball.y + ball.dy < ball.radius) {
-            ball.dy = -ball.dy;
-        } else if (ball.y + ball.dy > canvas.height - ball.radius) {
-            // パドルとの衝突判定
-            if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+        for (let i = balls.length - 1; i >= 0; i--) {
+            const ball = balls[i];
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            
+            // 壁との衝突判定
+            if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
+                ball.dx = -ball.dx;
+            }
+            if (ball.y + ball.dy < ball.radius) {
                 ball.dy = -ball.dy;
-            } else {
-                // ゲームオーバー
-                lives--;
-                if (!lives) {
-                    alert("GAME OVER");
-                    document.location.reload();
+            } else if (ball.y + ball.dy > canvas.height - ball.radius) {
+                // パドルとの衝突判定
+                if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+                    ball.dy = -ball.dy;
                 } else {
-                    ball.x = canvas.width / 2;
-                    ball.y = canvas.height - 30;
-                    ball.dx = 2;
-                    ball.dy = -2;
-                    paddle.x = (canvas.width - paddle.width) / 2;
+                    // ボールが落ちた
+                    balls.splice(i, 1);
+                    if (balls.length === 0) {
+                        lives--;
+                        if (!lives) {
+                            alert("GAME OVER");
+                            document.location.reload();
+                        } else {
+                            balls.push({
+                                x: canvas.width / 2,
+                                y: canvas.height - 30,
+                                dx: 2,
+                                dy: -2,
+                                radius: 10
+                            });
+                            paddle.x = (canvas.width - paddle.width) / 2;
+                        }
+                    }
                 }
             }
-        }
 
-        // ブロックとの衝突判定
-        for (let c = 0; c < brick.columnCount; c++) {
-            for (let r = 0; r < brick.rowCount; r++) {
-                const b = bricks[c][r];
-                if (b.status === 1) {
-                    if (ball.x > b.x && ball.x < b.x + brick.width && ball.y > b.y && ball.y < b.y + brick.height) {
-                        ball.dy = -ball.dy;
-                        b.status = 0;
-                        score++;
-                        if (score === brick.rowCount * brick.columnCount) {
-                            alert("おめでとうございます！すべてのブロックを破壊しました！");
-                            document.location.reload();
+            // ブロックとの衝突判定
+            for (let c = 0; c < brick.columnCount; c++) {
+                for (let r = 0; r < brick.rowCount; r++) {
+                    const b = bricks[c][r];
+                    if (b.status === 1) {
+                        if (ball.x > b.x && ball.x < b.x + brick.width && ball.y > b.y && ball.y < b.y + brick.height) {
+                            ball.dy = -ball.dy;
+                            b.status = 0;
+                            score++;
+                            if (b.isPowerupBlock) {
+                                spawnPowerup(b.x + brick.width / 2, b.y + brick.height);
+                            }
+                            if (score === brick.rowCount * brick.columnCount) {
+                                alert("おめでとうございます！すべてのブロックを破壊しました！");
+                                document.location.reload();
+                            }
                         }
                     }
                 }
@@ -183,6 +203,5 @@ function gameStartHandler() {
 
 // 画像のロードが完了してからゲーム開始のメッセージを表示
 brickImage.onload = () => {
-    // 初回描画
     draw();
 };
