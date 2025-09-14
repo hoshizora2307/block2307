@@ -98,7 +98,7 @@ let balls = [{
     y: canvas.height - 30,
     dx: 2,
     dy: -2,
-    radius: 10
+    radius: 7 // ボールのサイズを小さく変更
 }];
 
 // パドルの設定
@@ -110,10 +110,10 @@ const paddle = {
 
 // ブロックの設定
 const brick = {
-    rowCount: 3,
-    columnCount: 5,
-    width: 75,
-    height: 40,
+    rowCount: 5, // 行数を増やす
+    columnCount: 7, // 列数を増やす
+    width: 60, // ブロックの幅を調整
+    height: 30, // ブロックの高さを調整
     padding: 10,
     offsetTop: 30,
     offsetLeft: 30
@@ -123,7 +123,7 @@ const bricks = [];
 for (let c = 0; c < brick.columnCount; c++) {
     bricks[c] = [];
     for (let r = 0; r < brick.rowCount; r++) {
-        const isPowerupBlock = Math.random() < 0.3;
+        const isPowerupBlock = Math.random() < 0.2;
         bricks[c][r] = { x: 0, y: 0, status: 1, isPowerupBlock: isPowerupBlock };
     }
 }
@@ -223,7 +223,7 @@ function applyPowerup(powerup) {
                 y: balls[0].y,
                 dx: -balls[0].dx,
                 dy: balls[0].dy,
-                radius: 10
+                radius: balls[0].radius
             });
             break;
         case POWERUP_TYPES.LIFE:
@@ -244,7 +244,6 @@ backgroundImage.onload = () => {
     checkAllAssetsLoaded();
 };
 backgroundImage.onerror = () => {
-    console.error("背景画像のロードに失敗しました。ファイル名 'space_bg.jpg' が正しいか確認してください。");
     assetsLoaded++;
     checkAllAssetsLoaded();
 };
@@ -257,7 +256,6 @@ brickImage.onload = () => {
     checkAllAssetsLoaded();
 };
 brickImage.onerror = () => {
-    console.error("ロゴ画像のロードに失敗しました。ファイル名 'logo.png' が正しいか確認してください。");
     assetsLoaded++;
     checkAllAssetsLoaded();
 };
@@ -358,7 +356,7 @@ function draw() {
                                 y: canvas.height - 30,
                                 dx: 2,
                                 dy: -2,
-                                radius: 10
+                                radius: balls[0].radius
                             });
                             paddle.x = (canvas.width - paddle.width) / 2;
                         }
