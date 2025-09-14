@@ -97,8 +97,8 @@ updateStatsUI();
 let balls = [{
     x: canvas.width / 2,
     y: canvas.height - 30,
-    dx: 4, // ボールの初速をアップ
-    dy: -4, // ボールの初速をアップ
+    dx: 4,
+    dy: -4,
     radius: 7
 }];
 
@@ -122,7 +122,6 @@ const brick = {
 
 let bricks = [];
 let totalBlocks = 0;
-let bricksCreated = false;
 
 // 新しいブロックの行を追加する関数
 function addBrickRow() {
@@ -131,13 +130,13 @@ function addBrickRow() {
         const isPowerupBlock = Math.random() < 0.2;
         newRow[c] = {
             x: (c * (brick.width + brick.padding)) + brick.offsetLeft,
-            y: -brick.height, // 画面外からスタート
+            y: -brick.height,
             status: 1,
             isPowerupBlock: isPowerupBlock,
-            dy: 0.5 // 落下速度
+            dy: 0.5
         };
     }
-    bricks.unshift(newRow); // 配列の先頭に追加
+    bricks.unshift(newRow);
     totalBlocks += brick.columnCount;
 }
 
@@ -190,53 +189,4 @@ function spawnPowerup(x, y) {
     const random = Math.random();
     let type;
     if (random < 0.33) {
-        type = POWERUP_TYPES.PADDLE_EXPAND;
-    } else if (random < 0.66) {
-        type = POWERUP_TYPES.MULTIBALL;
-    } else {
-        type = POWERUP_TYPES.LIFE;
-    }
-    powerups.push(new Powerup(x, y, type));
-}
-
-// アイテムの更新と描画
-function updateAndDrawPowerups(ctx) {
-    for (let i = powerups.length - 1; i >= 0; i--) {
-        const powerup = powerups[i];
-        if (powerup.active) {
-            powerup.update();
-            powerup.draw(ctx);
-            // アイテムとパドルの衝突判定
-            if (
-                powerup.x < paddle.x + paddle.width &&
-                powerup.x + powerup.width > paddle.x &&
-                powerup.y + powerup.height > canvas.height - paddle.height
-            ) {
-                applyPowerup(powerup);
-                powerup.active = false;
-            }
-        } else {
-            powerups.splice(i, 1);
-        }
-    }
-}
-
-// アイテムの効果適用
-function applyPowerup(powerup) {
-    switch (powerup.type) {
-        case POWERUP_TYPES.PADDLE_EXPAND:
-            paddle.width = 120;
-            setTimeout(() => {
-                paddle.width = 75;
-            }, 5000);
-            break;
-        case POWERUP_TYPES.MULTIBALL:
-            balls.push({
-                x: balls[0].x,
-                y: balls[0].y,
-                dx: -balls[0].dx,
-                dy: balls[0].dy,
-                radius: balls[0].radius
-            });
-            break;
-        case POWERUP_TYPES.LIFE:
+        type = POWERUP
