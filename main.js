@@ -174,19 +174,3 @@ class Powerup {
         ctx.fill();
         ctx.closePath();
     }
-
-    update() {
-        if (!this.active) return;
-        this.y += this.speed;
-        if (this.y > canvas.height) {
-            this.active = false;
-        }
-    }
-}
-
-// アイテムの生成
-function spawnPowerup(x, y) {
-    const random = Math.random();
-    let type;
-    if (random < 0.33) {
-        type = POWERUP
