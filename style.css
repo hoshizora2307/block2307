@@ -13,7 +13,6 @@ canvas {
     background-color: #eee;
     border: 2px solid #333;
     display: block;
-    /* スマートフォンでの表示を考慮して、最大幅と中央配置を追加 */
     max-width: 90%;
     margin-left: auto;
     margin-right: auto;
