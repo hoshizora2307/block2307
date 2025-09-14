@@ -1,11 +1,14 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const statusMessage = document.getElementById("status-message");
+const highScoreElement = document.getElementById("high-score");
 
 // ゲームの状態
 let gameStarted = false;
 let score = 0;
 let lives = 3;
+let highScore = localStorage.getItem('breakoutHighScore') || 0;
+highScoreElement.textContent = highScore;
 
 // ボールの設定（複数ボールに対応）
 let balls = [{
@@ -38,7 +41,6 @@ const bricks = [];
 for (let c = 0; c < brick.columnCount; c++) {
     bricks[c] = [];
     for (let r = 0; r < brick.rowCount; r++) {
-        // ランダムでアイテムブロックを生成
         const isPowerupBlock = Math.random() < 0.3;
         bricks[c][r] = { x: 0, y: 0, status: 1, isPowerupBlock: isPowerupBlock };
     }
@@ -205,6 +207,9 @@ function draw() {
         for (let i = balls.length - 1; i >= 0; i--) {
             const ball = balls[i];
             
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
             // 壁との衝突判定
             if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
                 ball.dx = -ball.dx;
@@ -216,12 +221,16 @@ function draw() {
                 if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
                     ball.dy = -ball.dy;
                 } else {
-                    // ボールが落ちた場合
                     balls.splice(i, 1);
                     if (balls.length === 0) {
                         lives--;
                         if (lives === 0) {
-                            alert("GAME OVER");
+                            if (score > highScore) {
+                                highScore = score;
+                                localStorage.setItem('breakoutHighScore', highScore);
+                                highScoreElement.textContent = highScore;
+                            }
+                            alert("GAME OVER\n最高得点: " + highScore);
                             document.location.reload();
                         } else {
                             balls.push({
@@ -252,22 +261,23 @@ function draw() {
                                 spawnPowerup(b.x + brick.width / 2, b.y + brick.height);
                             }
                             if (score === brick.rowCount * brick.columnCount) {
-                                alert("おめでとうございます！すべてのブロックを破壊しました！");
+                                if (score > highScore) {
+                                    highScore = score;
+                                    localStorage.setItem('breakoutHighScore', highScore);
+                                    highScoreElement.textContent = highScore;
+                                }
+                                alert("おめでとうございます！すべてのブロックを破壊しました！\n最高得点: " + highScore);
                                 document.location.reload();
                             }
                             blockHit = true;
-                            break; // 衝突したら内側のループを抜ける
+                            break;
                         }
                     }
                 }
                 if (blockHit) {
-                    break; // 衝突したら外側のループも抜ける
+                    break;
                 }
             }
-
-            // ボールの位置を更新
-            ball.x += ball.dx;
-            ball.y += ball.dy;
         }
     }
     
