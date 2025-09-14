@@ -150,15 +150,55 @@ function applyPowerup(powerup) {
     }
 }
 
-// ロゴ画像をロード
-const brickImage = new Image();
-brickImage.src = 'logo.png';
-brickImage.onerror = () => {
-    console.error("ロゴ画像のロードに失敗しました。ファイル名 'logo.png' が正しいか確認してください。");
-    alert("ロゴ画像のロードに失敗しました。コンソールを確認してください。");
+// 画像の読み込みを管理する
+let assetsLoaded = 0;
+const totalAssets = 2;
+
+// 背景画像をロード
+const backgroundImage = new Image();
+backgroundImage.src = 'space_bg.jpg';
+backgroundImage.onload = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+backgroundImage.onerror = () => {
+    console.error("背景画像のロードに失敗しました。ファイル名 'space_bg.jpg' が正しいか確認してください。");
+    // ロード失敗してもゲームは開始できるようにする
+    assetsLoaded++;
+    checkAllAssetsLoaded();
 };
 
+// ブロック画像をロード
+const brickImage = new Image();
+brickImage.src = 'logo.png';
+brickImage.onload = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+brickImage.onerror = () => {
+    console.error("ロゴ画像のロードに失敗しました。ファイル名 'logo.png' が正しいか確認してください。");
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+
+// 全てのアセットの読み込みが完了したかチェック
+function checkAllAssetsLoaded() {
+    if (assetsLoaded === totalAssets) {
+        draw();
+    }
+}
+
 // 描画関数
+function drawBackground() {
+    if (backgroundImage.complete) {
+        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+    } else {
+        // 画像がロードされていない場合は単色で塗りつぶす
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
 function drawBall() {
     balls.forEach(ball => {
         ctx.beginPath();
@@ -197,7 +237,7 @@ function drawBricks() {
 
 // 描画ループ
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackground(); // 背景画像を描画
     drawBricks();
     drawBall();
     drawPaddle();
@@ -324,6 +364,5 @@ function gameStartHandler() {
 }
 
 // 画像のロードが完了してからゲーム開始のメッセージを表示
-brickImage.onload = () => {
-    draw();
-};
+// 今回は`checkAllAssetsLoaded()`で管理するので削除
+checkAllAssetsLoaded();
