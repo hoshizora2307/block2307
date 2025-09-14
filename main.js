@@ -273,6 +273,9 @@ brickImage.onerror = () => {
 function checkAllAssetsLoaded() {
     if (assetsLoaded === totalAssets) {
         gameReady = true;
+        statusMessage.textContent = "ゲーム開始準備完了！クリックしてスタート！";
+        // アセットの読み込みが完了したら、描画ループを開始
+        requestAnimationFrame(draw);
     }
 }
 
@@ -309,7 +312,9 @@ function drawBricks() {
         for (let c = 0; c < bricks[r].length; c++) {
             const b = bricks[r][c];
             if (b.status === 1) {
-                b.y += b.dy;
+                if (gameStarted) {
+                    b.y += b.dy;
+                }
                 if (b.y + brick.height > canvas.height) {
                     alert("GAME OVER\n最高得点: " + highScore);
                     document.location.reload();
@@ -482,7 +487,7 @@ function checkAllAssetsLoaded() {
     if (assetsLoaded === totalAssets) {
         gameReady = true;
         statusMessage.textContent = "ゲーム開始準備完了！クリックしてスタート！";
-        // ここで最初の描画ループを開始
+        // アセットの読み込みが完了したら、描画ループを開始
         requestAnimationFrame(draw);
     }
 }
