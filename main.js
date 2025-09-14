@@ -7,7 +7,7 @@ let gameStarted = false;
 let score = 0;
 let lives = 3;
 
-// ボールは複数になる可能性があるため配列で管理
+// ボールの設定（複数ボールに対応）
 let balls = [{
     x: canvas.width / 2,
     y: canvas.height - 30,
@@ -44,6 +44,110 @@ for (let c = 0; c < brick.columnCount; c++) {
     }
 }
 
+// アイテムの種類と色
+const POWERUP_TYPES = {
+    PADDLE_EXPAND: 'paddle_expand',
+    MULTIBALL: 'multiball',
+    LIFE: 'life'
+};
+const POWERUP_COLORS = {
+    PADDLE_EXPAND: '#ff7f00',
+    MULTIBALL: '#00ccff',
+    LIFE: '#00ff00'
+};
+
+// アイテムオブジェクトを管理する配列
+let powerups = [];
+
+class Powerup {
+    constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.width = 30;
+        this.height = 30;
+        this.speed = 2;
+        this.type = type;
+        this.active = true;
+    }
+
+    draw(ctx) {
+        if (!this.active) return;
+        ctx.beginPath();
+        ctx.rect(this.x, this.y, this.width, this.height);
+        ctx.fillStyle = POWERUP_COLORS[this.type.toUpperCase()];
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    update() {
+        if (!this.active) return;
+        this.y += this.speed;
+        if (this.y > canvas.height) {
+            this.active = false;
+        }
+    }
+}
+
+// アイテムの生成
+function spawnPowerup(x, y) {
+    const random = Math.random();
+    let type;
+    if (random < 0.33) {
+        type = POWERUP_TYPES.PADDLE_EXPAND;
+    } else if (random < 0.66) {
+        type = POWERUP_TYPES.MULTIBALL;
+    } else {
+        type = POWERUP_TYPES.LIFE;
+    }
+    powerups.push(new Powerup(x, y, type));
+}
+
+// アイテムの更新と描画
+function updateAndDrawPowerups(ctx) {
+    for (let i = powerups.length - 1; i >= 0; i--) {
+        const powerup = powerups[i];
+        if (powerup.active) {
+            powerup.update();
+            powerup.draw(ctx);
+            // アイテムとパドルの衝突判定
+            if (
+                powerup.x > paddle.x &&
+                powerup.x < paddle.x + paddle.width &&
+                powerup.y + powerup.height > canvas.height - paddle.height
+            ) {
+                applyPowerup(powerup);
+                powerup.active = false;
+            }
+        } else {
+            powerups.splice(i, 1);
+        }
+    }
+}
+
+// アイテムの効果適用
+function applyPowerup(powerup) {
+    switch (powerup.type) {
+        case POWERUP_TYPES.PADDLE_EXPAND:
+            paddle.width = 120;
+            setTimeout(() => {
+                paddle.width = 75;
+            }, 5000);
+            break;
+        case POWERUP_TYPES.MULTIBALL:
+            balls.push({
+                x: balls[0].x,
+                y: balls[0].y,
+                dx: -balls[0].dx,
+                dy: balls[0].dy,
+                radius: 10
+            });
+            break;
+        case POWERUP_TYPES.LIFE:
+            lives++;
+            break;
+    }
+}
+
 // ロゴ画像をロード
 const brickImage = new Image();
 brickImage.src = 'logo.png';
@@ -51,7 +155,6 @@ brickImage.onerror = () => {
     console.error("ロゴ画像のロードに失敗しました。ファイル名 'logo.png' が正しいか確認してください。");
     alert("ロゴ画像のロードに失敗しました。コンソールを確認してください。");
 };
-
 
 // 描画関数
 function drawBall() {
@@ -96,14 +199,15 @@ function draw() {
     drawBricks();
     drawBall();
     drawPaddle();
-    updateAndDrawPowerups(ctx); // アイテムの描画と更新
+    updateAndDrawPowerups(ctx);
 
     if (gameStarted) {
         for (let i = balls.length - 1; i >= 0; i--) {
             const ball = balls[i];
+            
             ball.x += ball.dx;
             ball.y += ball.dy;
-            
+
             // 壁との衝突判定
             if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
                 ball.dx = -ball.dx;
@@ -115,11 +219,11 @@ function draw() {
                 if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
                     ball.dy = -ball.dy;
                 } else {
-                    // ボールが落ちた
+                    // ボールが落ちた場合
                     balls.splice(i, 1);
                     if (balls.length === 0) {
                         lives--;
-                        if (!lives) {
+                        if (lives === 0) {
                             alert("GAME OVER");
                             document.location.reload();
                         } else {
@@ -133,6 +237,7 @@ function draw() {
                             paddle.x = (canvas.width - paddle.width) / 2;
                         }
                     }
+                    continue;
                 }
             }
 
