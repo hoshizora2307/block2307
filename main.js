@@ -274,7 +274,7 @@ function checkAllAssetsLoaded() {
     if (assetsLoaded === totalAssets) {
         gameReady = true;
         statusMessage.textContent = "ゲーム開始準備完了！クリックしてスタート！";
-        // アセットの読み込みが完了したら、描画ループを開始
+        // アセット読み込み完了後に描画ループを開始
         requestAnimationFrame(draw);
     }
 }
