@@ -1,5 +1,10 @@
 body {
-    background-color: #f0f0f0;
+    /* 背景画像を宇宙空間の画像に変更 */
+    background-image: url('space_bg.jpg');
+    background-size: cover; /* 画面全体に画像を拡大・縮小して表示 */
+    background-position: center; /* 画像を中央に配置 */
+    background-repeat: no-repeat; /* 画像を繰り返し表示しない */
+    
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -7,10 +12,11 @@ body {
     height: 100vh;
     margin: 0;
     font-family: sans-serif;
+    color: #fff; /* 文字色を白に変更して、宇宙背景でも見やすく */
 }
 
 canvas {
-    background-color: #eee;
+    background-color: rgba(0, 0, 0, 0.5); /* キャンバスの背景を半透明の黒に */
     border: 2px solid #333;
     display: block;
     max-width: 90%;
@@ -19,17 +25,18 @@ canvas {
 }
 
 h1 {
-    color: #333;
+    color: #fff; /* タイトルの文字色も白に */
     text-align: center;
 }
 
 #game-info {
     margin-top: 20px;
     text-align: center;
+    color: #fff; /* ゲーム情報の文字色も白に */
 }
 
 #status-message {
     font-size: 1.2em;
     font-weight: bold;
-    color: #555;
+    color: #fff; /* ステータスメッセージの文字色も白に */
 }
