@@ -50,7 +50,6 @@ brickImage.onerror = () => {
     alert("ロゴ画像のロードに失敗しました。コンソールを確認してください。");
 };
 
-
 // 描画関数
 function drawBall() {
     ctx.beginPath();
@@ -77,15 +76,8 @@ function drawBricks() {
                 bricks[c][r].x = brickX;
                 bricks[c][r].y = brickY;
                 
-                if (brickImage.complete) {
-                    ctx.drawImage(brickImage, brickX, brickY, brick.width, brick.height);
-                } else {
-                    ctx.beginPath();
-                    ctx.rect(brickX, brickY, brick.width, brick.height);
-                    ctx.fillStyle = "#0095DD";
-                    ctx.fill();
-                    ctx.closePath();
-                }
+                // 画像がロード済みであれば、画像を描画
+                ctx.drawImage(brickImage, brickX, brickY, brick.width, brick.height);
             }
         }
     }
@@ -160,6 +152,7 @@ function draw() {
 document.addEventListener("mousemove", mouseMoveHandler);
 document.addEventListener("touchstart", touchHandler, false);
 document.addEventListener("touchmove", touchHandler, false);
+document.addEventListener("click", gameStartHandler);
 
 function mouseMoveHandler(e) {
     const relativeX = e.clientX - canvas.offsetLeft;
@@ -171,29 +164,25 @@ function mouseMoveHandler(e) {
 // タッチ操作ハンドラ
 function touchHandler(e) {
     if (e.touches) {
-        // 最初のタッチの位置を取得
         const touchX = e.touches[0].pageX - canvas.offsetLeft;
         if (touchX > 0 && touchX < canvas.width) {
             paddle.x = touchX - paddle.width / 2;
         }
     }
-    
-    // ゲームが開始していない場合、最初のタッチでゲームを開始
-    if (!gameStarted) {
-        gameStarted = true;
-        statusMessage.style.display = 'none';
-        draw();
-    }
-    
-    // スクロールなどのデフォルト動作を防止
     e.preventDefault();
 }
 
-// ゲーム開始用のクリックイベントはそのまま残しておく
-document.addEventListener("click", () => {
+// ゲーム開始ハンドラ
+function gameStartHandler() {
     if (!gameStarted) {
         gameStarted = true;
         statusMessage.style.display = 'none';
         draw();
     }
-});
+}
+
+// 画像のロードが完了してからゲーム開始のメッセージを表示
+brickImage.onload = () => {
+    // 初回描画
+    draw();
+};
