@@ -7,7 +7,7 @@ body {
     height: 100vh;
     margin: 0;
     font-family: sans-serif;
-    color: #333; /* 文字色をデフォルトに戻す */
+    color: #333;
 }
 
 canvas {
@@ -33,4 +33,16 @@ h1 {
     font-size: 1.2em;
     font-weight: bold;
     color: #555;
+}
+
+#stats-panel {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+#stats-panel button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
 }
