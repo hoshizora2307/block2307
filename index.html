@@ -3,15 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>2307BLOCK！！！
+    <title>2307 FOREVER!</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>あなたは何点とれるか！</h1>
+    <h1>2307 FOREVER!</h1>
     <canvas id="gameCanvas" width="480" height="320"></canvas>
     <div id="game-info">
         <p id="status-message">画面をTAPしてスタート！</p>
         <p>最高得点: <span id="high-score">0</span></p>
+        
+        <p>レベル: <span id="player-level">1</span></p>
+        <p>XP: <span id="player-xp">0</span> / <span id="xp-to-next-level">10</span></p>
+        <p>ステータスポイント: <span id="status-points">0</span></p>
+        <div id="stats-panel" style="display: none;">
+            <h3>ステータス強化</h3>
+            <p>
+                パドルサイズ: <span id="stat-paddle-size">1</span>
+                <button id="upgrade-paddle">強化</button>
+            </p>
+            <p>
+                ボールスピード: <span id="stat-ball-speed">1</span>
+                <button id="upgrade-speed">強化</button>
+            </p>
+            <p>
+                ライフ: <span id="stat-life">1</span>
+                <button id="upgrade-life">強化</button>
+            </p>
+        </div>
     </div>
     
     <script src="main.js"></script>
