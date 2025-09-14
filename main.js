@@ -111,8 +111,8 @@ function updateAndDrawPowerups(ctx) {
             powerup.draw(ctx);
             // アイテムとパドルの衝突判定
             if (
-                powerup.x > paddle.x &&
                 powerup.x < paddle.x + paddle.width &&
+                powerup.x + powerup.width > paddle.x &&
                 powerup.y + powerup.height > canvas.height - paddle.height
             ) {
                 applyPowerup(powerup);
@@ -205,9 +205,6 @@ function draw() {
         for (let i = balls.length - 1; i >= 0; i--) {
             const ball = balls[i];
             
-            ball.x += ball.dx;
-            ball.y += ball.dy;
-
             // 壁との衝突判定
             if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
                 ball.dx = -ball.dx;
@@ -242,6 +239,7 @@ function draw() {
             }
 
             // ブロックとの衝突判定
+            let blockHit = false;
             for (let c = 0; c < brick.columnCount; c++) {
                 for (let r = 0; r < brick.rowCount; r++) {
                     const b = bricks[c][r];
@@ -257,10 +255,19 @@ function draw() {
                                 alert("おめでとうございます！すべてのブロックを破壊しました！");
                                 document.location.reload();
                             }
+                            blockHit = true;
+                            break; // 衝突したら内側のループを抜ける
                         }
                     }
                 }
+                if (blockHit) {
+                    break; // 衝突したら外側のループも抜ける
+                }
             }
+
+            // ボールの位置を更新
+            ball.x += ball.dx;
+            ball.y += ball.dy;
         }
     }
     
