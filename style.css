@@ -7,33 +7,33 @@ body {
     height: 100vh;
     margin: 0;
     font-family: sans-serif;
-    color: #333;
+    color: #fff; /* 文字色を白に変更 */
 }
 
 canvas {
     border: 2px solid #333;
     display: block;
     max-width: 90%;
-    max-height: 80vh; /* 画面の高さに合わせる */
+    max-height: 80vh;
     margin-left: auto;
     margin-right: auto;
 }
 
 h1 {
-    color: #333;
+    color: #fff; /* タイトルも白に変更 */
     text-align: center;
 }
 
 #game-info {
     margin-top: 20px;
     text-align: center;
-    color: #555;
+    color: #fff; /* ゲーム情報も白に変更 */
 }
 
 #status-message {
     font-size: 1.2em;
     font-weight: bold;
-    color: #555;
+    color: #fff; /* ステータスメッセージも白に変更 */
 }
 
 #stats-panel {
