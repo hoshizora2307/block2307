@@ -7,7 +7,7 @@ body {
     height: 100vh;
     margin: 0;
     font-family: sans-serif;
-    color: #fff; /* 文字色を白に変更 */
+    color: #fff;
 }
 
 canvas {
@@ -20,20 +20,20 @@ canvas {
 }
 
 h1 {
-    color: #fff; /* タイトルも白に変更 */
+    color: #fff;
     text-align: center;
 }
 
 #game-info {
     margin-top: 20px;
     text-align: center;
-    color: #fff; /* ゲーム情報も白に変更 */
+    color: #fff;
 }
 
 #status-message {
     font-size: 1.2em;
     font-weight: bold;
-    color: #fff; /* ステータスメッセージも白に変更 */
+    color: #fff;
 }
 
 #stats-panel {
