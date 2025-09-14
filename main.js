@@ -174,3 +174,315 @@ class Powerup {
         ctx.fill();
         ctx.closePath();
     }
+
+    update() {
+        if (!this.active) return;
+        this.y += this.speed;
+        if (this.y > canvas.height) {
+            this.active = false;
+        }
+    }
+}
+
+// アイテムの生成
+function spawnPowerup(x, y) {
+    const random = Math.random();
+    let type;
+    if (random < 0.33) {
+        type = POWERUP_TYPES.PADDLE_EXPAND;
+    } else if (random < 0.66) {
+        type = POWERUP_TYPES.MULTIBALL;
+    } else {
+        type = POWERUP_TYPES.LIFE;
+    }
+    powerups.push(new Powerup(x, y, type));
+}
+
+// アイテムの更新と描画
+function updateAndDrawPowerups(ctx) {
+    for (let i = powerups.length - 1; i >= 0; i--) {
+        const powerup = powerups[i];
+        if (powerup.active) {
+            powerup.update();
+            powerup.draw(ctx);
+            if (
+                powerup.x < paddle.x + paddle.width &&
+                powerup.x + powerup.width > paddle.x &&
+                powerup.y + powerup.height > canvas.height - paddle.height
+            ) {
+                applyPowerup(powerup);
+                powerup.active = false;
+            }
+        } else {
+            powerups.splice(i, 1);
+        }
+    }
+}
+
+// アイテムの効果適用
+function applyPowerup(powerup) {
+    switch (powerup.type) {
+        case POWERUP_TYPES.PADDLE_EXPAND:
+            paddle.width = 120;
+            setTimeout(() => {
+                paddle.width = 75;
+            }, 5000);
+            break;
+        case POWERUP_TYPES.MULTIBALL:
+            balls.push({
+                x: balls[0].x,
+                y: balls[0].y,
+                dx: -balls[0].dx,
+                dy: balls[0].dy,
+                radius: balls[0].radius
+            });
+            break;
+        case POWERUP_TYPES.LIFE:
+            lives++;
+            break;
+    }
+}
+
+// 画像の読み込みを管理
+let assetsLoaded = 0;
+const totalAssets = 2;
+let gameReady = false;
+
+const backgroundImage = new Image();
+backgroundImage.src = 'space_bg.jpg';
+backgroundImage.onload = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+backgroundImage.onerror = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+
+const brickImage = new Image();
+brickImage.src = 'logo.png';
+brickImage.onload = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+brickImage.onerror = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+
+function checkAllAssetsLoaded() {
+    if (assetsLoaded === totalAssets) {
+        gameReady = true;
+    }
+}
+
+// 描画関数
+function drawBackground() {
+    if (backgroundImage.complete) {
+        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
+function drawBall() {
+    balls.forEach(ball => {
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();
+    });
+}
+
+function drawPaddle() {
+    ctx.beginPath();
+    ctx.rect(paddle.x, canvas.height - paddle.height, paddle.width, paddle.height);
+    ctx.fillStyle = "#0095DD";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawBricks() {
+    for (let r = 0; r < bricks.length; r++) {
+        for (let c = 0; c < bricks[r].length; c++) {
+            const b = bricks[r][c];
+            if (b.status === 1) {
+                b.y += b.dy;
+                if (b.y + brick.height > canvas.height) {
+                    alert("GAME OVER\n最高得点: " + highScore);
+                    document.location.reload();
+                    return;
+                }
+                if (brickImage.complete) {
+                    ctx.drawImage(brickImage, b.x, b.y, brick.width, brick.height);
+                }
+            }
+        }
+    }
+}
+
+let lastBlockTime = 0;
+const blockInterval = 5000;
+
+function draw(timestamp) {
+    drawBackground();
+    drawBricks();
+    drawBall();
+    drawPaddle();
+    updateAndDrawPowerups(ctx);
+
+    if (gameStarted) {
+        if (timestamp - lastBlockTime > blockInterval) {
+            addBrickRow();
+            lastBlockTime = timestamp;
+        }
+
+        for (let i = balls.length - 1; i >= 0; i--) {
+            const ball = balls[i];
+            
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
+                ball.dx = -ball.dx;
+            }
+            if (ball.y + ball.dy < ball.radius) {
+                ball.dy = -ball.dy;
+            } else if (ball.y + ball.dy > canvas.height - ball.radius) {
+                if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+                    ball.dy = -ball.dy;
+                } else {
+                    balls.splice(i, 1);
+                    if (balls.length === 0) {
+                        lives--;
+                        if (lives === 0) {
+                            if (score > highScore) {
+                                highScore = score;
+                                localStorage.setItem('breakoutHighScore', highScore);
+                                highScoreElement.textContent = highScore;
+                            }
+                            alert("GAME OVER\n最高得点: " + highScore);
+                            document.location.reload();
+                        } else {
+                            balls.push({
+                                x: canvas.width / 2,
+                                y: canvas.height - 30,
+                                dx: 4,
+                                dy: -4,
+                                radius: balls[0].radius
+                            });
+                            paddle.x = (canvas.width - paddle.width) / 2;
+                        }
+                    }
+                    continue;
+                }
+            }
+
+            let blockHit = false;
+            for (let r = 0; r < bricks.length; r++) {
+                for (let c = 0; c < bricks[r].length; c++) {
+                    const b = bricks[r][c];
+                    if (b.status === 1) {
+                        if (ball.x > b.x && ball.x < b.x + brick.width && ball.y > b.y && ball.y < b.y + brick.height) {
+                            ball.dy = -ball.dy;
+                            b.status = 0;
+                            score++;
+                            gainXP();
+
+                            if (b.isPowerupBlock) {
+                                spawnPowerup(b.x + brick.width / 2, b.y + brick.height);
+                            }
+                            blockHit = true;
+                            break;
+                        }
+                    }
+                }
+                if (blockHit) {
+                    break;
+                }
+            }
+        }
+    }
+    
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Score: " + score, 8, 20);
+    ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
+
+    requestAnimationFrame(draw);
+}
+
+// ユーザー入力
+document.addEventListener("mousemove", mouseMoveHandler);
+document.addEventListener("touchstart", touchHandler, false);
+document.addEventListener("touchmove", touchHandler, false);
+document.addEventListener("click", gameStartHandler);
+
+function mouseMoveHandler(e) {
+    const relativeX = e.clientX - canvas.offsetLeft;
+    if (relativeX > 0 && relativeX < canvas.width) {
+        paddle.x = relativeX - paddle.width / 2;
+    }
+}
+
+// タッチ操作ハンドラ
+function touchHandler(e) {
+    if (e.touches) {
+        const touchX = e.touches[0].pageX - canvas.offsetLeft;
+        if (touchX > 0 && touchX < canvas.width) {
+            paddle.x = touchX - paddle.width / 2;
+        }
+    }
+    e.preventDefault();
+}
+
+// ゲーム開始ハンドラ
+function gameStartHandler() {
+    if (!gameStarted && gameReady) {
+        startGame();
+    }
+}
+
+function startGame() {
+    gameStarted = true;
+    statusMessage.style.display = 'none';
+    addBrickRow();
+    lastBlockTime = performance.now();
+}
+
+// アセットの読み込みが完了したら、ゲームをスタートできる状態にする
+let assetsLoaded = 0;
+const totalAssets = 2;
+
+const backgroundImage = new Image();
+backgroundImage.src = 'space_bg.jpg';
+backgroundImage.onload = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+backgroundImage.onerror = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+
+const brickImage = new Image();
+brickImage.src = 'logo.png';
+brickImage.onload = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+brickImage.onerror = () => {
+    assetsLoaded++;
+    checkAllAssetsLoaded();
+};
+
+function checkAllAssetsLoaded() {
+    if (assetsLoaded === totalAssets) {
+        gameReady = true;
+        statusMessage.textContent = "ゲーム開始準備完了！クリックしてスタート！";
+        // ここで最初の描画ループを開始
+        requestAnimationFrame(draw);
+    }
+}
