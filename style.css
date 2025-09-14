@@ -1,0 +1,36 @@
+body {
+    background-color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: sans-serif;
+}
+
+canvas {
+    background-color: #eee;
+    border: 2px solid #333;
+    display: block;
+    /* スマートフォンでの表示を考慮して、最大幅と中央配置を追加 */
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+}
+
+#game-info {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#status-message {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #555;
+}
